@@ -1,4 +1,4 @@
-users
+users:
 - id BIGINT, PK
 - first_name VARCHAR(100),NN
 - last_name VARCHAR(100),NN
@@ -6,7 +6,7 @@ users
 - phone_number VARCHAR(10), NN
 - password VARCHAR(50),NN
 
-addresses
+addresses:
 - id BIGINT, PK
 - user_id BIGINT FK
 - city VARCHAR(50),NN
@@ -15,7 +15,7 @@ addresses
 - street_number SMALLINT
 - zip_code CHAR(5), NN
 
-products
+products:
 - id BIGINT, PK
 - name VARCHAR(100), NN
 - img VARCHAR(255), NN
@@ -30,35 +30,51 @@ products
 - ingredients  VARCHAR(100) 
 - available_quantity SMALLINT, default(0)
 
-categories
+categories:
 - id BIGINT, PK
 - name VARCHAR(100), NN
 
-category_product
+category_product:
 - category_id BIGINT FK
 - product_id BIGINT FK
 
 
-carts
+
+carts:
 - id BIGINT, PK
-- user_id
-- product_id
-- product_quantity
+- user_id FK
 
+cart_product:
+- cart_id FK
+- product_id FK
+- quantity TINYINT
 
-
-orders
+orders:
 - id BIGINT, PK
+- user_id fk
+- shipment_code NN UNIQUE
+
+order_product:
+- order_id fk
+- product_id fk
+- quantity TINYINT default (1)
 
 
-
-wishlists
+wishlists:
 - id BIGINT, PK
+- user_id FK
+
+product_Wishlist
+- product_id FK
+- wishlist_id FK
 
 
-
-discount_codes
+discount_codes:
 - id BIGINT, PK
+- code VARCHAR(20) NN
+- value TINYINT NN
+- valid_from DATETIME
+- valid_to DATETIME
 
 
 
