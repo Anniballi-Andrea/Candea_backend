@@ -20,6 +20,7 @@ products:
 - name VARCHAR(100), NN
 - img VARCHAR(255), NN
 - description text, NN
+- slug VARCHAR(100), NN
 - initial_price FLOAT(8,2), NN (?)
 - actual_price FLOAT(8,2), NN (?)
 - discount TINYINT defoult 0
@@ -29,6 +30,9 @@ products:
 - burn_time  VARCHAR(100)
 - ingredients  VARCHAR(100) 
 - available_quantity SMALLINT, default(0)
+- sold_quantity INT, default(0)
+- created_at DATETIME default(now)
+- updated_at DATETIME default(now)
 
 categories:
 - id BIGINT, PK
