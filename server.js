@@ -1,6 +1,7 @@
 const express = require("express");
 
 const productRouter = require("./routers/products");
+const ordersRouter = require("./routers/orders");
 
 const connection = require("./data/db");
 
@@ -17,3 +18,4 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/products", productRouter);
+app.use("/api/orders", ordersRouter);

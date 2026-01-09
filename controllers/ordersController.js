@@ -1,11 +1,11 @@
 const connection = require("../data/db");
 
-const index = (req, res) => {
-	res.send("Index");
-};
-
 const show = (req, res) => {
 	res.send("Show");
 };
 
-module.exports = { index, show };
+const store = (req, res) => {
+	res.send("Store");
+};
+
+module.exports = { show, store };
