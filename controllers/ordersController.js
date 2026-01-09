@@ -1,6 +1,7 @@
 const connection = require("../data/db");
 
 const show = (req, res) => {
+	const id = Number(req.params.id);
 	res.send("Show");
 };
 

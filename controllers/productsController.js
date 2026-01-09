@@ -5,6 +5,7 @@ const index = (req, res) => {
 };
 
 const show = (req, res) => {
+	const id = Number(req.params.id);
 	res.send("Show");
 };
 
