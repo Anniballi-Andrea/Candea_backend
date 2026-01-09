@@ -25,6 +25,7 @@ category_product:
 
 orders:
 - id BIGINT, PK
+- discount_code_id FK
 - shipment_code NN UNIQUE
 - first_name VARCHAR(100), NN
 - last_name VARCHAR(100), NN
@@ -36,7 +37,6 @@ orders:
 - street VARCHAR(50),NN
 - street_number SMALLINT
 - zip_code CHAR(5), NN
-- discount_code_id FK
 - free_shipping TINYINT(1)
 - created_at DATETIME default(now)
 - updated_at DATETIME default(now)
