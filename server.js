@@ -8,6 +8,11 @@ const connection = require("./data/db");
 const app = express();
 const PORT = process.env.PORT;
 
+// Static files
+app.use(express.static("public"));
+// Body Parser
+app.use(express.json());
+
 app.listen(PORT, () => {
 	console.log(`Listening on http://localhost:${PORT}`);
 });
