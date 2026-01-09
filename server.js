@@ -1,4 +1,7 @@
 const express = require("express");
+
+const productRouter = require("./routers/products");
+
 const app = express();
 const PORT = process.env.PORT;
 
@@ -10,3 +13,5 @@ app.listen(PORT, () => {
 app.get("/", (req, res) => {
 	res.send("Main Index Route");
 });
+
+app.use("/api/products", productRouter);
