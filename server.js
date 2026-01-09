@@ -2,6 +2,8 @@ const express = require("express");
 
 const productRouter = require("./routers/products");
 
+const connection = require("./data/db");
+
 const app = express();
 const PORT = process.env.PORT;
 
