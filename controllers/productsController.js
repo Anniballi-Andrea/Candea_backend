@@ -21,10 +21,10 @@ const index = (req, res) => {
 };
 
 const show = (req, res) => {
-	const id = Number(req.params.id);
-	const query = `SELECT * FROM products WHERE id = ?`;
+	const slug = req.params.slug;
+	const query = `SELECT * FROM products WHERE slug = ?`;
 
-	connection.query(query, [id], (err, response) => {
+	connection.query(query, [slug], (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
 
 		if (response.length === 0)

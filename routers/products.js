@@ -6,6 +6,6 @@ const router = express.Router();
 router.get("/", productsController.index);
 
 // Show Route
-router.get("/:id", productsController.show);
+router.get("/:slug", productsController.show);
 
 module.exports = router;
