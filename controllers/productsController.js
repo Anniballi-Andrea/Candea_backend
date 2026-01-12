@@ -5,9 +5,18 @@ const index = (req, res) => {
 	connection.query(query, (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
 
-		console.log(response);
+		let list = response;
 
-		res.json(response);
+		if (req.query.name) {
+			list = list.filter((item) =>
+				item.name.toLowerCase().includes(req.query.name.toLowerCase()),
+			);
+		}
+
+		if (req.query.category) {
+		}
+
+		res.json(list);
 	});
 };
 
