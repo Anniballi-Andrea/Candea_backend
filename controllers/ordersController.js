@@ -15,15 +15,79 @@ const show = (req, res) => {
 };
 
 const store = (req, res) => {
-	const { data } = req.body;
+	const {
+		first_name,
+		last_name,
+		total_amount,
+		email,
+		phone_number,
+		city,
+		province,
+		street,
+		street_number,
+		zip_code,
+		free_shipping,
+		shipment_code,
+		discount_code_id,
+		products,
+	} = req.body;
 
-	if (!data) {
+	if (
+		!first_name ||
+		!last_name ||
+		!total_amount ||
+		!email ||
+		!phone_number ||
+		!city ||
+		!province ||
+		!street ||
+		!zip_code ||
+		!shipment_code ||
+		!products
+	) {
 		return res
 			.status(400)
 			.json({ error: true, message: "Something is wrong with the input" });
 	}
 
-	res.send(`Stored: ${data}`);
+	const orderQuery = `INSERT INTO orders (first_name, last_name, total_amount, email, phone_number, city, province, street, street_number, zip_code, free_shipping, shipment_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+
+	const productQuery = `INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?);`;
+
+	connection.query(
+		orderQuery,
+		[
+			first_name,
+			last_name,
+			total_amount,
+			email,
+			phone_number,
+			city,
+			province,
+			street,
+			street_number,
+			zip_code,
+			free_shipping,
+			shipment_code,
+		],
+		(err, orderResponse) => {
+			if (err)
+				return res.status(500).json({ error: err, message: err.message });
+
+			products.forEach((product) => {
+				connection.query(
+					productQuery,
+					[orderResponse.insertId, product.id, product.quantity],
+					(err, productResponse) => {
+						if (err)
+							return res.status(500).json({ error: err, message: err.message });
+					},
+				);
+			});
+
+			res.sendStatus(201);
+		},
+	);
 };
 
 module.exports = { show, store };
