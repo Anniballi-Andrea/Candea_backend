@@ -1,30 +1,19 @@
 const connection = require("../data/db");
 
 const index = (req, res) => {
-	const query = `SELECT * FROM products`;
+	const query = `SELECT * FROM categories`;
 	connection.query(query, (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
 
-		let list = response;
-
-		if (req.query.name) {
-			list = list.filter((item) =>
-				item.name.toLowerCase().includes(req.query.name.toLowerCase()),
-			);
-		}
-
-		if (req.query.category) {
-		}
-
-		res.json(list);
+		res.json(response);
 	});
 };
 
 const show = (req, res) => {
-	const slug = req.params.slug;
-	const query = `SELECT * FROM products WHERE slug = ?`;
+	const id = Number(req.params.id);
+	const query = `SELECT * FROM categories WHERE id = ?`;
 
-	connection.query(query, [slug], (err, response) => {
+	connection.query(query, [id], (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
 
 		if (response.length === 0)
