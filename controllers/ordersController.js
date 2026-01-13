@@ -54,6 +54,8 @@ const store = (req, res) => {
 
 	const productQuery = `INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?);`;
 
+	const updateQuantityQuery = `UPDATE products SET available_quantity = available_quantity - ? WHERE id = ? AND available_quantity - ? > 0`;
+
 	connection.query(
 		orderQuery,
 		[
@@ -81,6 +83,18 @@ const store = (req, res) => {
 					(err, productResponse) => {
 						if (err)
 							return res.status(500).json({ error: err, message: err.message });
+					},
+				);
+
+				connection.query(
+					updateQuantityQuery,
+					[product.quantity, product.id, product.quantity],
+					(err, updateQuantityQuery) => {
+						if (err)
+							return res.status(500).json({ error: err, message: err.message });
+
+						if (updateQuantityQuery.affectedRows === 0)
+							return res.sendStatus(500);
 					},
 				);
 			});
