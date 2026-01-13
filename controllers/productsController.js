@@ -43,14 +43,20 @@ const index = (req, res) => {
 const show = (req, res) => {
 	const slug = req.params.slug;
 	const query = `SELECT * FROM products WHERE slug = ?`;
+	const categoriesQuery = `SELECT categories.id, categories.name FROM categories JOIN category_product ON categories.id = category_product.category_id WHERE category_product.product_id = ?`;
 
-	connection.query(query, [slug], (err, response) => {
+	connection.query(query, [slug], async (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
 
 		if (response.length === 0)
 			return res.status(404).json({ error: 404, message: "Product Not Found" });
 
-		res.json(response[0]);
+		connection.query(categoriesQuery, [response[0].id], (err, categories) => {
+			if (err)
+				return res.status(500).json({ error: err, message: err.message });
+
+			res.json({ ...response[0], categories });
+		});
 	});
 };
 
