@@ -1,23 +1,21 @@
 const connection = require("../data/db");
 
+const codeValidation = (code) => {
+	const now = Date.now();
+	const valid_from = code.valid_from.getTime();
+	const valid_to = code.valid_to ? code.valid_to.getTime() : null;
+
+	return !(now < valid_from || (valid_to && now > valid_to));
+};
+
 const validate = (req, res) => {
 	const code = req.params.code;
 	const query = `SELECT * FROM discount_codes WHERE code = ?`;
-	const now = Date.now();
 
 	connection.query(query, [code], (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
 
-		const valid_from = response[0].valid_from.getTime();
-		const valid_to = response[0].valid_to
-			? response[0].valid_to.getTime()
-			: null;
-
-		if (
-			response.length === 0 ||
-			now < valid_from ||
-			(valid_to && now > valid_to)
-		)
+		if (response.length === 0 || !codeValidation(response[0]))
 			return res
 				.status(404)
 				.json({ error: 404, message: "Discount Not Found" });
