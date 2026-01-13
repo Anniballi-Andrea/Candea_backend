@@ -50,7 +50,7 @@ const store = (req, res) => {
 			.json({ error: true, message: "Something is wrong with the input" });
 	}
 
-	const orderQuery = `INSERT INTO orders (first_name, last_name, total_amount, email, phone_number, city, province, street, street_number, zip_code, free_shipping, shipment_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+	const orderQuery = `INSERT INTO orders (first_name, last_name, total_amount, email, phone_number, city, province, street, street_number, zip_code, free_shipping, shipment_code, discount_code_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
 
 	const productQuery = `INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?);`;
 
@@ -71,6 +71,7 @@ const store = (req, res) => {
 			zip_code,
 			free_shipping,
 			shipment_code,
+			discount_code_id,
 		],
 		(err, orderResponse) => {
 			if (err)

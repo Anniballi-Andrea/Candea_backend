@@ -22,7 +22,7 @@ const validate = (req, res) => {
 				.status(404)
 				.json({ error: 404, message: "Discount Not Found" });
 
-		res.json(response[0].value);
+		res.json(response[0]);
 	});
 };
 
