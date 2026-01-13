@@ -60,4 +60,14 @@ const show = (req, res) => {
 	});
 };
 
-module.exports = { index, show };
+const showByNumberSold = (req, res) => {
+	const query = `SELECT SUM(order_product.quantity) as total_sold, products.id, products.name, products.img, products.description, products.slug, products.initial_price, products.actual_price, products.color, products.dimensions, products.scent, products.burn_time, products.ingredients, products.available_quantity, products.created_at, products.updated_at FROM products JOIN order_product ON products.id = order_product.product_id GROUP BY products.id ORDER BY total_sold DESC`;
+
+	connection.query(query, (err, response) => {
+		if (err) return res.status(500).json({ error: err, message: err.message });
+
+		res.json(response);
+	});
+};
+
+module.exports = { index, show, showByNumberSold };
