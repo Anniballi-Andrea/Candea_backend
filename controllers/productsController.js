@@ -1,8 +1,29 @@
 const connection = require("../data/db");
 
 const index = (req, res) => {
-	const query = `SELECT * FROM products`;
+	let query = `SELECT * FROM products`;
 	const categoriesQuery = `SELECT categories.id, categories.name FROM categories JOIN category_product ON categories.id = category_product.category_id WHERE category_product.product_id = ?`;
+
+	const sortBy = req.query.sortBy || "name";
+	const order = req.query.order || "asc";
+
+	switch (sortBy) {
+		case "price":
+			query += ` ORDER BY products.actual_price`;
+			break;
+		case "recent":
+			query += ` ORDER BY products.created_at`;
+			break;
+		default:
+			query += ` ORDER BY products.name`;
+			break;
+	}
+
+	if (order === "desc") {
+		query += ` DESC`;
+	} else {
+		query += ` ASC`;
+	}
 
 	connection.query(query, async (err, response) => {
 		if (err) return res.status(500).json({ error: err, message: err.message });
