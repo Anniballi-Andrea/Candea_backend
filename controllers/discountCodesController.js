@@ -2,10 +2,10 @@ const connection = require("../data/db");
 
 const codeValidation = (code) => {
 	const now = Date.now();
-	const valid_from = code.valid_from.getTime();
-	const valid_to = code.valid_to ? code.valid_to.getTime() : null;
+	const valid_from = code.valid_from?.getTime();
+	const valid_to = code.valid_to?.getTime();
 
-	return !(now < valid_from || (valid_to && now > valid_to));
+	return !((valid_from && now < valid_from) || (valid_to && now > valid_to));
 };
 
 const validate = (req, res) => {
@@ -24,4 +24,4 @@ const validate = (req, res) => {
 	});
 };
 
-module.exports = { validate };
+module.exports = { validate, codeValidation };

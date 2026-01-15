@@ -1,4 +1,5 @@
 const connection = require("../data/db");
+const { codeValidation } = require("./discountCodesController");
 
 const show = (req, res) => {
 	const id = Number(req.params.id);
@@ -14,11 +15,60 @@ const show = (req, res) => {
 	});
 };
 
-const store = (req, res) => {
+const nameValidation = (first_name, last_name) =>
+	/[a-zA-Z]+/.test(first_name) && /[a-zA-Z]+/.test(last_name);
+
+const emailValidation = (email) =>
+	/^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/gm.test(email);
+
+const phoneNumberValidation = (phone) =>
+	/(?:([+]\d{1,4})[-.\s]?)?(?:[(](\d{1,3})[)][-.\s]?)?(\d{1,4})[-.\s]?(\d{1,4})[-.\s]?(\d{1,9})/g.test(
+		phone,
+	);
+
+const generateTotalAmount = async (products, free_shipping) => {
+	const query = `SELECT initial_price FROM products WHERE id = ?`;
+
+	const list = await Promise.all(
+		products.map(
+			(item) =>
+				new Promise((resolve, reject) => {
+					connection.query(query, [item.id], (err, response) => {
+						if (err) return reject(err);
+
+						const price = response?.[0] ? Number(response[0].initial_price) : 0;
+
+						resolve(price * Number(item.quantity));
+					});
+				}),
+		),
+	);
+
+	const result = list.reduce((sum, current) => sum + current, 0);
+
+	// TODO handle free shipping
+	// if(free_shipping) {
+	// }
+
+	return result;
+};
+
+const generateShipmentCode = () => {
+	let result = "";
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	const charactersLength = characters.length;
+
+	for (let i = 0; i < 10; i++) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	}
+
+	return result;
+};
+
+const store = async (req, res) => {
 	const {
 		first_name,
 		last_name,
-		total_amount,
 		email,
 		phone_number,
 		city,
@@ -26,8 +76,7 @@ const store = (req, res) => {
 		street,
 		street_number,
 		zip_code,
-		free_shipping,
-		shipment_code,
+		free_shipping, // TODO handle free_shipping
 		discount_code_id,
 		products,
 	} = req.body;
@@ -35,20 +84,43 @@ const store = (req, res) => {
 	if (
 		!first_name ||
 		!last_name ||
-		!total_amount ||
 		!email ||
 		!phone_number ||
 		!city ||
 		!province ||
 		!street ||
 		!zip_code ||
-		!shipment_code ||
-		!products
+		!products ||
+		products.length === 0
 	) {
 		return res
 			.status(400)
 			.json({ error: true, message: "Something is wrong with the input" });
 	}
+
+	if (discount_code_id && !codeValidation(discount_code_id)) {
+		return res
+			.status(400)
+			.json({ error: true, message: "Wrong discount code" });
+	}
+
+	if (!nameValidation(first_name, last_name)) {
+		return res.status(400).json({ error: true, message: "Bad name input" });
+	}
+
+	if (!emailValidation(email)) {
+		return res.status(400).json({ error: true, message: "Bad email input" });
+	}
+
+	if (!phoneNumberValidation(phone_number)) {
+		return res
+			.status(400)
+			.json({ error: true, message: "Bad phone number input" });
+	}
+
+	const total_amount = await generateTotalAmount(products, free_shipping);
+
+	const shipment_code = generateShipmentCode();
 
 	const orderQuery = `INSERT INTO orders (first_name, last_name, total_amount, email, phone_number, city, province, street, street_number, zip_code, free_shipping, shipment_code, discount_code_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
 
@@ -94,13 +166,16 @@ const store = (req, res) => {
 						if (err)
 							return res.status(500).json({ error: err, message: err.message });
 
+						// this doesn't actually work, TODO fix
+						// this happens after the last res.send()
+						// gives error in the terminal if the quantity available is not enough
 						if (updateQuantityQuery.affectedRows === 0)
 							return res.sendStatus(500);
 					},
 				);
 			});
 
-			res.sendStatus(201);
+			return res.sendStatus(201);
 		},
 	);
 };
