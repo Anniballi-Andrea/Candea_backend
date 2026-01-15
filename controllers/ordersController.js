@@ -54,10 +54,9 @@ const phoneNumberValidation = (phone) =>
  * makes a query to obtain the actual price of the products and
  * returns the total amount.
  * @param {Array} products
- * @param {Integer} free_shipping
  * @returns {Float}
  */
-const generateTotalAmount = async (products, free_shipping) => {
+const generateTotalAmount = async (products) => {
 	const query = `SELECT actual_price FROM products WHERE id = ?`;
 
 	const list = await Promise.all(
@@ -75,13 +74,55 @@ const generateTotalAmount = async (products, free_shipping) => {
 		),
 	);
 
-	const result = list.reduce((sum, current) => sum + current, 0);
+	return list.reduce((sum, current) => sum + current, 0);
+};
 
-	// TODO handle free shipping
-	// if(free_shipping) {
-	// }
+/**
+ * **applyDiscountCode**
+ * Takes an amount and a discount code id,
+ * makes a query to obtain the discount value and
+ * returns the final amount after applying the discount.
+ * @param {Float} amount
+ * @param {Integer} discount_code_id
+ * @returns
+ */
+const applyDiscountCode = (amount, discount_code_id) => {
+	if (!discount_code_id) return Promise.resolve(amount);
 
-	return result;
+	const query = `SELECT discount_codes.value FROM discount_codes WHERE id = ?`;
+
+	return new Promise((resolve, reject) => {
+		connection.query(query, [discount_code_id], (err, response) => {
+			if (err) return reject(err);
+
+			const value = response?.[0]?.value ? Number(response[0].value) : 0;
+			const result = amount - (amount * value) / 100;
+			resolve(result);
+		});
+	});
+};
+
+/**
+ * **applyFreeShipping**
+ * Takes an amount and checks if it is eligible for free shipping.
+ * If it is, it returns the amount unchanged.
+ * If it is not, it adds a shipping fee to the amount.
+ * @param {Float} amount
+ * @returns {Array}
+ */
+const applyFreeShipping = (amount) => {
+	const min_free_shipping = 90.0;
+	const shipping_fee = 5.0;
+
+	let free_shipping = 0;
+
+	if (amount > min_free_shipping) {
+		free_shipping = 1;
+	} else {
+		free_shipping = 0;
+		amount += shipping_fee;
+	}
+	return [free_shipping, amount];
 };
 
 /**
@@ -112,7 +153,6 @@ const store = async (req, res) => {
 		street,
 		street_number,
 		zip_code,
-		free_shipping, // TODO handle free_shipping
 		discount_code_id,
 		products,
 	} = req.body;
@@ -154,7 +194,11 @@ const store = async (req, res) => {
 			.json({ error: true, message: "Bad phone number input" });
 	}
 
-	const total_amount = await generateTotalAmount(products, free_shipping);
+	let amount = await generateTotalAmount(products);
+
+	amount = await applyDiscountCode(amount, discount_code_id);
+
+	const [free_shipping, total_amount] = applyFreeShipping(amount);
 
 	const shipment_code = generateShipmentCode();
 
