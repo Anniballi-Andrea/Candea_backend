@@ -34,10 +34,12 @@ app.get("/", (req, res) => {
 	res.send("Main Index Route");
 });
 
+// Routes
 app.use("/api/products", productRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/discount", discountRouter);
 
+// Middleware
 app.use(serverError);
 app.use(notFound);

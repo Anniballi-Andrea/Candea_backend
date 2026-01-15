@@ -1,5 +1,12 @@
 const connection = require("../data/db");
 
+/**
+ * **codeValidation**
+ * Receives a discount code object.
+ * It checks if it is still a valid code.
+ * @param {Object} code
+ * @returns {Boolean}
+ */
 const codeValidation = (code) => {
 	const now = Date.now();
 	const valid_from = code.valid_from?.getTime();

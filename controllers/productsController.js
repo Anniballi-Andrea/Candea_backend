@@ -7,6 +7,7 @@ const index = (req, res) => {
 	const sortBy = req.query.sortBy || "name";
 	const order = req.query.order || "asc";
 
+	// Add which column to sort by to query
 	switch (sortBy) {
 		case "price":
 			query += ` ORDER BY products.actual_price`;
@@ -19,6 +20,7 @@ const index = (req, res) => {
 			break;
 	}
 
+	// Add order to query
 	if (order === "desc") {
 		query += ` DESC`;
 	} else {
@@ -30,12 +32,14 @@ const index = (req, res) => {
 
 		let list = response;
 
+		// Filter by name
 		if (req.query.name) {
 			list = response.filter((item) =>
 				item.name.toLowerCase().includes(req.query.name.toLowerCase()),
 			);
 		}
 
+		// Add the categories to every product
 		const fullList = await Promise.all(
 			list.map(async (item) => {
 				const [categories] = await connection
@@ -45,6 +49,7 @@ const index = (req, res) => {
 			}),
 		);
 
+		// Filter by category
 		let filtered = fullList;
 		if (req.query.category) {
 			const catQuery = req.query.category.toLowerCase();
@@ -81,6 +86,7 @@ const show = (req, res) => {
 	});
 };
 
+// Retrieve and order the products by quantity sold
 const showByNumberSold = (req, res) => {
 	const query = `SELECT SUM(order_product.quantity) as total_sold, products.id, products.name, products.img, products.description, products.slug, products.initial_price, products.actual_price, products.color, products.dimensions, products.scent, products.burn_time, products.ingredients, products.available_quantity, products.created_at, products.updated_at FROM products JOIN order_product ON products.id = order_product.product_id GROUP BY products.id ORDER BY total_sold DESC`;
 

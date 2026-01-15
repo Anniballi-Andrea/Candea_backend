@@ -15,19 +15,50 @@ const show = (req, res) => {
 	});
 };
 
+/**
+ * **nameValidation**
+ * It checks if the first and last name use only latin characters,
+ * using a regular expression.
+ * @param {String} first_name
+ * @param {String} last_name
+ * @returns {Boolean}
+ */
 const nameValidation = (first_name, last_name) =>
 	/[a-zA-Z]+/.test(first_name) && /[a-zA-Z]+/.test(last_name);
 
+/**
+ * **emailValidation**
+ * It checks if the string is a valid email address,
+ * using a regular expression.
+ * @param {String} email
+ * @returns {Boolean}
+ */
 const emailValidation = (email) =>
 	/^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/gm.test(email);
 
+/**
+ * **PhoneNumberValidation**
+ * It checks if the string is a valid phone number,
+ * using a regular expression.
+ * @param {String} phone
+ * @returns {Boolean}
+ */
 const phoneNumberValidation = (phone) =>
 	/(?:([+]\d{1,4})[-.\s]?)?(?:[(](\d{1,3})[)][-.\s]?)?(\d{1,4})[-.\s]?(\d{1,4})[-.\s]?(\d{1,9})/g.test(
 		phone,
 	);
 
+/**
+ * **generateTotalAmount**
+ * Takes an array of products (with properties id and quantity),
+ * makes a query to obtain the actual price of the products and
+ * returns the total amount.
+ * @param {Array} products
+ * @param {Integer} free_shipping
+ * @returns {Float}
+ */
 const generateTotalAmount = async (products, free_shipping) => {
-	const query = `SELECT initial_price FROM products WHERE id = ?`;
+	const query = `SELECT actual_price FROM products WHERE id = ?`;
 
 	const list = await Promise.all(
 		products.map(
@@ -36,7 +67,7 @@ const generateTotalAmount = async (products, free_shipping) => {
 					connection.query(query, [item.id], (err, response) => {
 						if (err) return reject(err);
 
-						const price = response?.[0] ? Number(response[0].initial_price) : 0;
+						const price = response?.[0] ? Number(response[0].actual_price) : 0;
 
 						resolve(price * Number(item.quantity));
 					});
@@ -53,6 +84,11 @@ const generateTotalAmount = async (products, free_shipping) => {
 	return result;
 };
 
+/**
+ * **generateShipmentCode**
+ * Generates a mock shipment code
+ * @returns {String}
+ */
 const generateShipmentCode = () => {
 	let result = "";
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
