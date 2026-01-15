@@ -1,4 +1,5 @@
 const connection = require("../data/db");
+const transport = require("../data/mailer");
 const { codeValidation } = require("./discountCodesController");
 
 const show = (req, res) => {
@@ -142,6 +143,37 @@ const generateShipmentCode = () => {
 	return result;
 };
 
+const sendEmails = async (email) => {
+	try {
+		await transport.sendMail({
+			from: '"Candea" <noreply@candea.com>',
+			to: email,
+			subject: "Ordine confermato - Candea",
+			html: `
+        <h2>Ordine confermato</h2>
+        <p>Il tuo ordine è stato confermato!</p>
+      `,
+		});
+
+		// wait because of the mailtrap rate limit
+		await new Promise((resolve) => {
+			setTimeout(resolve, 10000);
+		});
+
+		await transport.sendMail({
+			from: '"Candea" <noreply@candea.com>',
+			to: "email@candea.com",
+			subject: "Ordine confermato - Candea",
+			html: `
+        <h2>Ordine confermato</h2>
+        <p>Il tuo ordine è stato confermato!</p>
+      `,
+		});
+	} catch (error) {
+		console.error("Error sending emails: ", error);
+	}
+};
+
 const store = async (req, res) => {
 	const {
 		first_name,
@@ -225,7 +257,7 @@ const store = async (req, res) => {
 			shipment_code,
 			discount_code_id,
 		],
-		(err, orderResponse) => {
+		async (err, orderResponse) => {
 			if (err)
 				return res.status(500).json({ error: err, message: err.message });
 
@@ -249,11 +281,13 @@ const store = async (req, res) => {
 						// this doesn't actually work, TODO fix
 						// this happens after the last res.send()
 						// gives error in the terminal if the quantity available is not enough
-						if (updateQuantityQuery.affectedRows === 0)
-							return res.sendStatus(500);
+						// if (updateQuantityQuery.affectedRows === 0)
+						// 	return res.sendStatus(500);
 					},
 				);
 			});
+
+			sendEmails(email);
 
 			return res.sendStatus(201);
 		},

@@ -12,7 +12,9 @@ const notFound = require("./middlewares/notFound");
 const connection = require("./data/db");
 
 const app = express();
-const PORT = process.env.PORT;
+const BACKEND_PORT = process.env.BACKEND_PORT;
+const FRONTEND_HOST = process.env.FRONTEND_HOST;
+const FRONTEND_PORT = process.env.FRONTEND_PORT;
 
 // Static files
 app.use(express.static("public"));
@@ -21,12 +23,12 @@ app.use(express.json());
 // CORS middleware
 app.use(
 	cors({
-		origin: "http://localhost:5173",
+		origin: `http://${FRONTEND_HOST}:${FRONTEND_PORT}`,
 	}),
 );
 
-app.listen(PORT, () => {
-	console.log(`Listening on http://localhost:${PORT}`);
+app.listen(BACKEND_PORT, () => {
+	console.log(`Listening on http://localhost:${BACKEND_PORT}`);
 });
 
 // Main Index Route
