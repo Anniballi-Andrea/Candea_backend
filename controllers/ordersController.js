@@ -143,19 +143,164 @@ const generateShipmentCode = () => {
 	return result;
 };
 
-const sendEmails = async (email) => {
+const sendEmails = async (
+	id,
+	first_name,
+	total_amount,
+	email,
+	shipment_code,
+	free_shipping,
+	products,
+) => {
+	const logo = "img/logo_scrittura.png";
+	const shipping_fee = 5.0;
+
+	let prepareHtml = `    
+	<style>
+        body {
+					font-family: system-ui;
+				}
+
+				.logo {
+					display: block;
+					margin: 0 auto;
+					height: 100px;
+				}
+				
+				.title {
+					text-align: center;
+				}
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .col {
+            margin: 1rem;
+
+            img {
+                max-height: 80px;
+                object-fit: contain;
+                border-radius: 10px;
+            }
+
+            .product-name {
+                margin: 0 0 0 0;
+                font-weight: 800;
+                font-size: 1.1rem;
+            }
+
+            .product-quantity {
+                margin: 0 0.1rem 0 0;
+                font-weight: 200;
+                font-size: 0.9rem;
+            }
+
+            .product-price {
+                margin-bottom: 0;
+                font-weight: 800;
+                font-size: 0.9rem;
+            }
+
+        }
+
+        .shipping {
+						font-weight: 500;
+            font-size: 1.1rem;
+            text-align: end;
+        }
+
+        .total {
+            font-size: 1.2rem;
+            text-align: end;
+        }
+    </style>
+		<div>
+        <img class="logo" alt="Candea" src="http://localhost:${process.env.BACKEND_PORT}/${logo}">
+        <h2 class="title">Ordine confermato</h2>
+        <p>Ciao ${first_name}, il tuo ordine è stato confermato.</p>
+        <p>Ordine #${id} è in arrivo.</p>
+        <p>Codice spedizione: ${shipment_code}</p>
+
+    </div>
+    <hr>
+`;
+
+	const query = `SELECT products.name, products.actual_price, products.img FROM products WHERE id = ?`;
+
+	// Retrieve products' name, price and image
+	const list = await Promise.all(
+		products.map(
+			(item) =>
+				new Promise((resolve, reject) => {
+					connection.query(query, [item.id], (err, response) => {
+						if (err) return reject(err);
+
+						const [name, price, img] = response?.[0]
+							? [
+									response[0].name,
+									Number(response[0].actual_price),
+									response[0].img,
+								]
+							: [null, 0, null];
+
+						resolve([name, price, img]);
+					});
+				}),
+		),
+	);
+
+	list.forEach((item, index) => {
+		const name = item[0];
+		const quantity = products[index].quantity;
+		const price = item[1];
+		const img = item[2];
+		prepareHtml += `
+		<div class="row">
+        <div class="col">
+            <img alt=${name} src="http://localhost:${process.env.BACKEND_PORT}/${img}">
+        </div>
+        <div class="col">
+            <h6 class="product-name">${name}</h6>
+            <p class="product-quantity">Quantità: ${quantity}</p>
+            <p class="product-price">€${(Number(price) * Number(quantity)).toFixed(2)}</p>
+        </div>
+    </div>
+    <hr>
+`;
+	});
+
+	if (!free_shipping) {
+		prepareHtml += `
+		<div class="shipping">
+  	    <p>Spedizione: €${shipping_fee.toFixed(2)}</p>
+ 	 	</div>
+		`;
+	} else {
+		prepareHtml += `
+		<div class="shipping">
+  	    <p>Spedizione: Gratuita</p>
+ 	 	</div>
+		`;
+	}
+
+	prepareHtml += `
+	<div class="total">
+      <h4>Totale: €${total_amount.toFixed(2)}</h4>
+  </div>
+	`;
+
 	try {
 		await transport.sendMail({
 			from: '"Candea" <noreply@candea.com>',
 			to: email,
 			subject: "Ordine confermato - Candea",
-			html: `
-        <h2>Ordine confermato</h2>
-        <p>Il tuo ordine è stato confermato!</p>
-      `,
+			html: prepareHtml,
 		});
 
-		// wait because of the mailtrap rate limit
+		// Wait because of the mailtrap rate limit
 		await new Promise((resolve) => {
 			setTimeout(resolve, 10000);
 		});
@@ -166,7 +311,7 @@ const sendEmails = async (email) => {
 			subject: "Ordine confermato - Candea",
 			html: `
         <h2>Ordine confermato</h2>
-        <p>Il tuo ordine è stato confermato!</p>
+        <p>L'ordine ${id} è stato confermato!</p>
       `,
 		});
 	} catch (error) {
@@ -287,7 +432,15 @@ const store = async (req, res) => {
 				);
 			});
 
-			sendEmails(email);
+			sendEmails(
+				orderResponse.insertId,
+				first_name,
+				total_amount,
+				email,
+				shipment_code,
+				free_shipping,
+				products,
+			);
 
 			return res.sendStatus(201);
 		},
