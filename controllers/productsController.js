@@ -33,9 +33,9 @@ const index = (req, res) => {
 		let list = response;
 
 		// Filter by name
-		if (req.query.name) {
+		if (req.query.q) {
 			list = response.filter((item) =>
-				item.name.toLowerCase().includes(req.query.name.toLowerCase()),
+				item.name.toLowerCase().includes(req.query.q.toLowerCase()),
 			);
 		}
 
