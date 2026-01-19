@@ -383,7 +383,7 @@ const store = async (req, res) => {
 
 	const productQuery = `INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?);`;
 
-	const updateQuantityQuery = `UPDATE products SET available_quantity = available_quantity - ? WHERE id = ? AND available_quantity - ? > 0`;
+	const updateQuantityQuery = `UPDATE products SET available_quantity = available_quantity - ? WHERE id = ? AND available_quantity - ? >= 0`;
 
 	connection.query(
 		orderQuery,
