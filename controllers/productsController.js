@@ -6,6 +6,12 @@ const index = (req, res) => {
 
 	const sortBy = req.query.sortBy || "name";
 	const order = req.query.order || "asc";
+	const promo = req.query.promo || "n";
+
+	// Add promo to query
+	if (promo === "y") {
+		query += ` WHERE products.initial_price != products.actual_price`;
+	}
 
 	// Add which column to sort by to query
 	switch (sortBy) {
